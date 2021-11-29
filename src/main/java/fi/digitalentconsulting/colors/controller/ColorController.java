@@ -2,6 +2,9 @@ package fi.digitalentconsulting.colors.controller;
 
 import java.net.URI;
 import java.util.List;
+import java.util.NoSuchElementException;
+
+import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +73,7 @@ public class ColorController {
 										@PathVariable(name="name") String name) {
 		Color found = colorRepository.findByName(name);
 		if (found == null) {
-			return ResponseEntity.notFound().build();
+			throw new NoSuchElementException("No color with name: " + name);
 		}
 		return ResponseEntity.ok(found);
 	}
@@ -82,12 +85,12 @@ public class ColorController {
 			    	schema = @Schema(implementation = Color.class))
 			    }),
 			@ApiResponse(responseCode = "409", description = "Color name already exists",
-				content = {@Content(mediaType = "text/plain",
-					schema=@Schema(implementation = String.class))
+				content = {@Content(mediaType = "application/json",
+					schema=@Schema(implementation = ExceptionMessage.class))
 				})
 		})
 	@PostMapping("/")
-	public ResponseEntity<?> addColor(@RequestBody Color color) {
+	public ResponseEntity<?> addColor(@Valid @RequestBody Color color) {
 		LOGGER.info("Adding a new color: {}", color);
 		if (colorRepository.findByName(color.getName()) == null) {
 			Color saved = colorRepository.save(color); 
@@ -96,7 +99,7 @@ public class ColorController {
 		            .buildAndExpand(saved.getName()).toUri();
 			return ResponseEntity.created(location).body(saved);
 		}
-		return ResponseEntity.status(HttpStatus.CONFLICT).body("Name already exists");
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(new ExceptionMessage("Name already exists", color.getName()));
 	}
 	
 	@Operation(summary = "Delete a color")
@@ -106,7 +109,7 @@ public class ColorController {
 		if (colorRepository.delete(new Color(name, null))) {
 			return ResponseEntity.noContent().build();
 		}
-		return ResponseEntity.notFound().build();
+		throw new NoSuchElementException(String.format("Can not delete Color with name \"%s\" - not existing", name));
 	}
 	
 	@Operation(summary = "Modify a color")

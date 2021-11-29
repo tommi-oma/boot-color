@@ -2,12 +2,15 @@ package fi.digitalentconsulting.colors.entity;
 
 import java.util.Arrays;
 
+import javax.validation.constraints.NotBlank;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Color {
 	private static Logger LOGGER = LoggerFactory.getLogger(Color.class);
 
+	@NotBlank
 	private String name;
 	private int[] rgb = new int[3];
 	private String hex;
@@ -21,6 +24,7 @@ public class Color {
 	}
 	
 	public String hexFromRgb(int r, int g, int b) {
+		LOGGER.info("Converting hex from {}, g, b", r, g, b);
 		if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
 			throw new IllegalArgumentException("Values need to be between 0 and 255");
 		return String.format("#%02x%02x%02x", r, g, b);
@@ -28,6 +32,7 @@ public class Color {
 	
 	public String hexFromRgb(int[] rgb) {
 		if (rgb == null) return null;
+		LOGGER.info("Converting hex from {}", rgb);
 		if (rgb.length != 3)
 			throw new IllegalArgumentException("Need three values: RGB");
 		return hexFromRgb(rgb[0], rgb[1], rgb[2]);
@@ -52,7 +57,6 @@ public class Color {
 		return hex;
 	}
 	public void setHex(String hex) {
-		LOGGER.info("Setting hex for {}: {}", name, hex);
 		this.hex = hex == null ? hex : hex.toLowerCase();
 		this.rgb = rgbFromHex(this.hex);
 	}

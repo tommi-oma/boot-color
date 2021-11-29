@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -27,7 +26,13 @@ public class ColorRepository {
 		save(new Color("black", "#000000"));
 	}
 
+	/**
+	 * Saves a new color, will replace if one with same name exists.
+	 * @param color Color to save
+	 * @return Color object that was saved
+	 */
 	public Color save(final Color color) {
+		LOGGER.info("Creating a new color {}", color);
 		colors.put(color.getName(), color);
 		return color;
 	}
