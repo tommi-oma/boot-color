@@ -28,11 +28,15 @@ public class DatamuseService {
 	public DatamuseService(String baseUrl, String wordPart) throws MalformedURLException {
 		this.webClient = WebClient.create();
 		this.baseUrl = new URL(baseUrl);
-		this.wordPart = wordPart;
-		
+		this.wordPart = wordPart;		
 	}
 	
 	public List<String> getSynonyms(String word) throws JsonMappingException, JsonProcessingException, UnsupportedEncodingException {
+		List<MuseWord> words = getMatchingWords(word);
+		return words.stream().limit(10).map(MuseWord::getWord).collect(Collectors.toList());
+	}
+	
+	public List<MuseWord> getMatchingWords(String word) throws JsonMappingException, JsonProcessingException, UnsupportedEncodingException {
 		final String encodedWord = URLEncoder.encode(word, StandardCharsets.UTF_8.toString());
 		LOGGER.info("Encoded word: '{}'", encodedWord);
 		String jsonResult = webClient.get()
@@ -42,31 +46,6 @@ public class DatamuseService {
                 .block();
 		List<MuseWord> words = mapper.readValue(jsonResult,
         		new TypeReference<List<MuseWord>>() {});
-		return words.stream().map(MuseWord::getWord).limit(10).collect(Collectors.toList());
+		return words;
 	}
-}
-
-class MuseWord {
-	private String word;
-	private Integer score;
-	private List<String> tags;
-	public String getWord() {
-		return word;
-	}
-	public void setWord(String word) {
-		this.word = word;
-	}
-	public Integer getScore() {
-		return score;
-	}
-	public void setScore(Integer score) {
-		this.score = score;
-	}
-	public List<String> getTags() {
-		return tags;
-	}
-	public void setTags(List<String> tags) {
-		this.tags = tags;
-	}
-	
 }

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import fi.digitalentconsulting.colors.service.WordServiceException;
+
 @ControllerAdvice
 public class ColorAdvice {
 
@@ -16,6 +18,13 @@ public class ColorAdvice {
 	public ResponseEntity<ExceptionMessage> handlNoSuchElementException(NoSuchElementException ex) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND)
 				.body(new ExceptionMessage("Not found", ex.getMessage()));
+	}
+	
+	@ExceptionHandler( value= { WordServiceException.class} )
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ResponseEntity<ExceptionMessage> handlWordException(NoSuchElementException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(new ExceptionMessage("Problem with the words", ex.getMessage()));
 	}
 	
 }

@@ -20,7 +20,7 @@ public class BootColorApplication {
 	@Bean
 	public ApplicationRunner testDatamuse(DatamuseService service) {
 		return args -> {
-			service.getSynonyms("Spring")
+			service.getSynonyms("Spring Boot")
 				.forEach(word->{
 					LOGGER.info("Synonym: {}", word);
 				});

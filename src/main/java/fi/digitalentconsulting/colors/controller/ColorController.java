@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import fi.digitalentconsulting.colors.entity.Color;
 import fi.digitalentconsulting.colors.repository.ColorRepository;
 import fi.digitalentconsulting.colors.service.DatamuseService;
+import fi.digitalentconsulting.colors.service.MuseWord;
 import fi.digitalentconsulting.colors.service.WordServiceException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -138,23 +140,38 @@ public class ColorController {
 	@Operation(summary = "Get synonyms for a color's name")
 	@ApiResponses(value = { 
 			  @ApiResponse(responseCode = "200", description = "Synonyms, max 10", 
-			    content = { @Content(mediaType = "application/json", 
-			    		array = @ArraySchema(schema = @Schema(implementation = String.class))) }),
+					    content = { @Content(mediaType = "application/json", 
+					    		array = @ArraySchema(schema = @Schema(oneOf = {String.class, MuseWord.class}))) 
+					    }),
 			  @ApiResponse(responseCode = "404", description = "Color not found", 
 			    content = @Content(schema=@Schema(implementation=ExceptionMessage.class)))})
 	@GetMapping("/{name}/synonyms")
-	public ResponseEntity<List<String>> colorNameSynonyms(@Parameter(description="Color name") @PathVariable String name) throws NoSuchElementException {
+	public ResponseEntity<?> colorNameSynonyms(@Parameter(description="Color name") @PathVariable String name,
+			@RequestParam(name="full") Optional<Boolean> full) throws NoSuchElementException {
 		Color color = colorRepository.findByName(name);
 		if (color == null) {
 			throw new NoSuchElementException("No color with name " + name);
 		}
-		List<String> synonyms;
 		try {
-			synonyms = datamuseService.getSynonyms(color.getName());
+			if (full.isPresent()) {
+				List<MuseWord> words = datamuseService.getMatchingWords(color.getName());
+				return ResponseEntity.ok(words);								
+			} else {
+				List<String> synonyms = datamuseService.getSynonyms(color.getName());
+				return ResponseEntity.ok(synonyms);				
+			}
 		} catch (JsonProcessingException | UnsupportedEncodingException e) {
 			throw new WordServiceException("Problem with synonyms", e);
 		}
-		return ResponseEntity.ok(synonyms);
 	}
 
 }
+
+
+
+
+
+
+
+
+
