@@ -18,12 +18,12 @@ public class ColorRepository {
 	private Map<String, Color> colors = new HashMap<>();
 
 	public ColorRepository() {
-		save(new Color("red", "#ff0000"));
-		save(new Color("blue", "#0000ff"));
-		save(new Color("fuchsia", "#FF00FF"));
-		save(new Color("yellow", "#FFFF00"));		
-		save(new Color("white", "#ffffff"));
-		save(new Color("black", "#000000"));
+//		save(new Color("red", "#ff0000"));
+//		save(new Color("blue", "#0000ff"));
+//		save(new Color("fuchsia", "#FF00FF"));
+//		save(new Color("yellow", "#FFFF00"));		
+//		save(new Color("white", "#ffffff"));
+//		save(new Color("black", "#000000"));
 	}
 
 	/**
@@ -56,6 +56,10 @@ public class ColorRepository {
 	
 	public boolean delete(Color color) {
 		return (colors.remove(color.getName()) != null);
+	}
+
+	public void saveAll(List<Color> initialcolors) {
+		initialcolors.forEach(this::save);
 	}
 	
 }
