@@ -1,0 +1,8 @@
+spring:
+  main:
+    banner-mode: off
+
+wordservice:
+  url:
+    base: https://api.datamuse.com
+    words: /words?ml=

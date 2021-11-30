@@ -1,5 +1,6 @@
 package fi.digitalentconsulting.colors.controller;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -22,8 +23,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import fi.digitalentconsulting.colors.entity.Color;
 import fi.digitalentconsulting.colors.repository.ColorRepository;
+import fi.digitalentconsulting.colors.service.DatamuseService;
+import fi.digitalentconsulting.colors.service.WordServiceException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -37,11 +42,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 public class ColorController {
 	private static Logger LOGGER = LoggerFactory.getLogger(ColorController.class);
 	private ColorRepository colorRepository;
+	private DatamuseService datamuseService;
 	
 	@Autowired
-	public ColorController(ColorRepository colorRepository) {
-		super();
+	public ColorController(ColorRepository colorRepository, DatamuseService datamuseService) {
 		this.colorRepository = colorRepository;
+		this.datamuseService = datamuseService;
 	}
 
 	@Operation(summary = "Get a list of colors")
@@ -128,4 +134,27 @@ public class ColorController {
 		Color saved = colorRepository.save(color);
 		return ResponseEntity.ok(saved);
 	}
+	
+	@Operation(summary = "Get synonyms for a color's name")
+	@ApiResponses(value = { 
+			  @ApiResponse(responseCode = "200", description = "Synonyms, max 10", 
+			    content = { @Content(mediaType = "application/json", 
+			    		array = @ArraySchema(schema = @Schema(implementation = String.class))) }),
+			  @ApiResponse(responseCode = "404", description = "Color not found", 
+			    content = @Content(schema=@Schema(implementation=ExceptionMessage.class)))})
+	@GetMapping("/{name}/synonyms")
+	public ResponseEntity<List<String>> colorNameSynonyms(@Parameter(description="Color name") @PathVariable String name) throws NoSuchElementException {
+		Color color = colorRepository.findByName(name);
+		if (color == null) {
+			throw new NoSuchElementException("No color with name " + name);
+		}
+		List<String> synonyms;
+		try {
+			synonyms = datamuseService.getSynonyms(color.getName());
+		} catch (JsonProcessingException | UnsupportedEncodingException e) {
+			throw new WordServiceException("Problem with synonyms", e);
+		}
+		return ResponseEntity.ok(synonyms);
+	}
+
 }
